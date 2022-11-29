@@ -139,31 +139,130 @@ pot_hs <- data.frame(
 init_surge <- fevd(x = y,
                    data = pot_surge,
                    use.phi = TRUE,
-                   threshold = thresh_surge$fitted.values)
-init_hs <- fevd(x = y,
-                data = pot_hs,
-                use.phi = TRUE,
-                threshold = thresh_hs$fitted.values)
+                   threshold = thresh_surge$fitted.values,
+                   type = "PP")
+init_surge
+# init_hs <- fevd(x = y,
+#                 data = pot_hs,
+#                 use.phi = TRUE,
+#                 threshold = thresh_hs$fitted.values)
 
 
-bdmcmc_marg <- function(input,
+
+test <- fevd(x = y,
+             data = pot_surge,
+             use.phi = TRUE,
+             type = "PP",
+             method = "GMLE",
+             threshold = thresh_surge$fitted.values,
+             location.fun = ~ cbind(pot_surge$cos, pot_surge$sin),
+             scale.fun = ~ cbind(pot_surge$cos, pot_surge$sin))
+test
+
+levd(x = pot_surge$y,
+     threshold = thresh_surge$fitted.values,
+     location = init_surge$results$par[1],
+     scale = exp(init_surge$results$par[2]),
+     shape = init_surge$results$par[3],
+     type = "PP")
+
+init_surge$results$par
+
+bdmcmc_nhpp <- function(input,
+                        thresh,
+                        fevd_init,
                         n_mc = 1e4) {
   # BDMCMC with mu and sigma dependent on linear or quadratic time and season.
-  # using phi instead of sigma in the algo.
+  # Using phi instead of sigma.
   
-  # Matrices of the models space. One for each covariate.
-  # Dim 1 is for mu, dim 2 for phi (xi could be added with 3d arrays).
-  mat_time <- matrix(FALSE, nrow = 3, ncol = 3)
-  mat_seas <- matrix(FALSE, nrow = 2, ncol = 2)
+  t_vec <- scale(1:nrow(input))
+
+  # Lists of vectors indication which covariate is currently active.
+  locat_l <- list(
+    trend = rep(FALSE, 2),
+    season = F
+  )
+  scale_l <- list(
+    trend = rep(FALSE, 2),
+    season = FALSE
+  )
+  par_l <- list(locat_l, scale_l)
+  # Matrices of covariates.
+  trend <- cbind(t_vec, t_vec^2)
+  season <- cbind(input$cos, input$sin)
+
+  # Initializing the parameter vector and the loglikelihood.
+  par_old <- list(
+    mu = fevd_init$results$par["location"],
+    phi = fevd_init$results$par["log.scale"],
+    xi = fevd_init$results$par["shape"]
+  )
+  lik_old <- exp(-fevd_init$results$value)
   
-  mats <- list(time = mat_time, seas = mat_seas)
+  n_par <- unlist(fevd_init$results$num.pars)
   
-  t_vec <- 1:nrow(input)
+  out <- list()
   
   for (i in 1:n_mc) {
-    # Pick one covariate.
+    # Stay step: update parameters with Metropolis-Hastings (actually only
+    # Metropolis for mu and phi).
     
+    for (j in 1:length(par_old)) {
+      # Iterating EVD parameters.
+      for (k in length(par_old[[j]])) {
+        # Iterating the jth parameter hyperparameters.
+        par_new <- par_old
+        
+        par_new[[j]][k] <- rnorm(1, par_old[[j]][k], 1e-1)
+        
+        # Assemble the covariate matrix.
+        cov_mu <- cbind(
+          rep(1, length(nrow(input))),
+          trend[, par_l[[1]]$trend],
+          season[, par_l[[1]]$season]
+        )
+        cov_phi <- cbind(
+          rep(1, length(nrow(input))),
+          trend[, par_l[[2]]$trend],
+          season[, par_l[[2]]$season]
+        )
+        # Compute de vector of the parameters.
+        mu_vec <- cov_mu %*% par_new[[1]]
+        phi_vec <- cov_phi %*% par_new[[2]]
+        xi_vec <- rep(par_new[[3]], nrow(input)) # Just in case varying xi is implemented later.
+        
+        # Likelihood of new model.
+        lik_new <- levd(x = input$y,
+                        threshold = thresh,
+                        location = mu_vec,
+                        scale = exp(phi_vec),
+                        shape = xi_vec,
+                        type = "PP",
+                        log = FALSE,
+                        negative = FALSE)
+        
+        alpha <- lik_new / lik_old
+        
+        if (runif(1) < alpha) {
+          par_old[[j]][k] <- par_new[[j]][k]
+          lik_old <- lik_new
+        }
+        out <- list.append(out, unlist(par_old)) # ITS BAD TO GROW LIST ON MCMC ?
+        model_id <- paste(as.numeric(unlist(par_l)), collapse = "")
+        names(out)[length(out)] <- model_id
+      }
+    }
   }
+  return(out)
 }
 
-bdmcmc_marg(pot_surge)
+zut <- bdmcmc_nhpp(pot_surge,
+                   thresh = thresh_surge$fitted.values,
+                   fevd_init = init_surge,
+                   n_mc = 1e2)
+
+zut2 <- bind_rows(zut)
+
+hist(zut2$mu0, 30)
+hist(zut2$mu1, 30)
+hist(zut2$log.scale, 30)
