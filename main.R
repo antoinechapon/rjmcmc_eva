@@ -6,6 +6,7 @@ library(xtable)
 library(nloptr)
 library(zoo)
 library(tictoc)
+library(latex2exp)
 
 library(extRemes)
 library(quantreg)
@@ -411,19 +412,82 @@ bdmcmc_nhpp <- function(input,
         par_l <- par_l_new
       }
     }
-    # Output result.
+    # Output result for this RJMCMC iteration.
     out <- list.append(out, unlist(par_old))
     model_id <- paste(as.numeric(!is.na(unlist(par_old))), collapse = "")
     names(out)[length(out)] <- model_id
   }
+  # Remove burn-in period (taking first 10% by default).
+  out <- out[-(1:(n_mc * .1))]
+  # Vectors of the models visited. PUTTING INDEX IN mod_vec$id BY HAND FOR SIMPLICITY
+  mod_vec <- list(id = names(out))
+  mod_vec <- list.append(
+    mod_vec, mu1 = as.factor(substr(mod_vec$id, 1, 3)))
+  mod_vec <- list.append(
+    mod_vec, mu2 = as.factor(substr(mod_vec$id, 4, 5)))
+  mod_vec <- list.append(
+    mod_vec, sigma1 = as.factor(substr(mod_vec$id, 6, 8)))
+  mod_vec <- list.append(
+    mod_vec, sigma2 = as.factor(substr(mod_vec$id, 9, 10)))
+  # Split they output by model.
+  out <- split(bind_rows(out), names(out))
   toc()
-  return(out)
+  return(list(models = out, ids = mod_vec))
 }
 
 run <- bdmcmc_nhpp(pot_surge,
                    thresh = thresh_surge$fitted.values,
                    fevd_init = init_surge,
-                   n_mc = 1e3)
+                   n_mc = 2e4)
+save(run, file = "run.RData")
 
-res <- bind_rows(run)
 
+# REMOVE BURN-IN ####
+
+toplot <- bind_cols(x = 1:length(run$ids[[1]]), run$ids[-1])
+names(toplot)[-1] <- c("mu trend", "mu season",
+                       "sigma trend", "sigma season")
+toplot <- melt(toplot, measure.vars = -1)
+toplot$value <- factor(toplot$value)
+
+# Model jump trace plot.
+ggplot(toplot) +
+  geom_point(aes(x = x, y = value, group = variable)) +
+  facet_grid(rows = vars(variable), scales = "free_y") +
+  theme_grey(base_size = 12) +
+  labs(x = "itération", y = "modèle") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
+visit <- data.frame(mod = factor(names(run$models)))
+visit$n <- NA
+for (i in 1:nrow(visit)) {
+  visit$n[i] <- nrow(run$models[[i]])
+}
+ggplot(visit) +
+  geom_col(aes(x = n, y = mod)) +
+  labs(x = "itérations", y = "modèle") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+# MAKE SURE 10011111111 IS THE MOST VISITED ####
+
+tohist <- bind_cols(x = 1:nrow(run$models$`10011111111`), run$models$`10011111111`)
+tohist <- tohist[, -(3:4)]
+tohist <- melt(tohist, measure.vars = -1)
+
+# Not real trace plot since other models are visited in between.
+ggplot(tohist) +
+  geom_line(aes(x = x, y = value, group = variable)) +
+  facet_wrap(facets = vars(variable), scales = "free_y") +
+  labs(x = "itérations", y = "hyperparamètre") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+ggplot(tohist) +
+  geom_histogram(aes(x = value, group = variable), bins = 30) +
+  facet_wrap(facets = vars(variable), scales = "free_x") +
+  labs(x = "itérations", y = "hyperparamètre") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
