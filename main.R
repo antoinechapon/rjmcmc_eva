@@ -439,7 +439,8 @@ run <- bdmcmc_nhpp(pot_surge,
                    thresh = thresh_surge$fitted.values,
                    fevd_init = init_surge,
                    n_mc = 2e4)
-save(run, file = "run.RData")
+# save(run, file = "run.RData")
+load("run.RData")
 
 
 # REMOVE BURN-IN ####
@@ -491,3 +492,4 @@ ggplot(tohist) +
   labs(x = "itérations", y = "hyperparamètre") +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
+
