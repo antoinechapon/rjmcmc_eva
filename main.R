@@ -137,6 +137,17 @@ pot_hs <- data.frame(
 )
 
 
+toplot <- data.frame(x = yday(data$t),
+                     y = data$surge)
+ggplot(toplot) +
+  geom_point(aes(x = x, y = y), alpha = .5) +
+  geom_line(aes(x = x, y = thresh_surge$fitted.values), col = "red") +
+  theme_grey(base_size = 12) +
+  labs(x = "jour de l'année", y = "surcote (m)") +
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+
 init_surge <- fevd(x = y,
                    data = pot_surge,
                    use.phi = TRUE,
