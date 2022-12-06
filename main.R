@@ -141,7 +141,7 @@ toplot <- data.frame(x = yday(data$t),
                      y = data$surge)
 ggplot(toplot) +
   geom_point(aes(x = x, y = y), alpha = .5) +
-  geom_line(aes(x = x, y = thresh_surge$fitted.values), col = "red") +
+  geom_line(aes(x = x, y = thresh_surge$fitted.values), col = "red", size = 1) +
   theme_grey(base_size = 12) +
   labs(x = "jour de l'année", y = "surcote (m)") +
   theme(panel.grid.major = element_blank(),

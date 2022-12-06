@@ -40,6 +40,7 @@
 
 \definecolor{my_blue}{rgb}{0.3, 0.4, 0.5}
 \definecolor{my_grey}{rgb}{0.6, 0.6, 0.6}
+\definecolor{inrs_blue}{rgb}{0.0627451, 0.1176471, 0.2588235}
 
 \usecolortheme[named = my_blue]{structure}
 
@@ -107,10 +108,10 @@
 % is a graphic format that can be processed by latex or pdflatex,
 % resp., then you can add a logo as follows:
 
-% \pgfdeclareimage[height=0.5cm]{university-logo}{university-logo-filename}
-% \logo{\pgfuseimage{university-logo}}
+%\pgfdeclareimage[height=2cm]{logoINRS}{Logo-INRS-horizontal.png}
+%\logo{\pgfuseimage{logoINRS}}
 
-
+\titlegraphic{\vspace{-0.5cm}\flushleft\includegraphics[width=3cm]{Logo-INRS-horizontal.png}}
 
 % Delete this, if you do not want the table of contents to pop up at
 % the beginning of each subsection:
@@ -139,27 +140,43 @@
 
 \section*{}
 
-%\begin{frame}{Introduction}
-%	\begin{itemize}
-%	\setlength{\itemsep}{10pt}
-%	\item Occupation du sol (\emph{land use} -- LU).
-%	\item Changement de LU $\rightarrow$ potentielle imperméabilisation.
-%	\item Processus anthropique mais conditionné par des paramètres physiques.
-%	\item La pente est un paramètre important.
-%	\end{itemize}
-%\vspace{0.5cm}
-%Changement de LU dans 2 bassins versants (BV) d\rq{}Austin, en lien avec le relief.\\
-%\vspace{0.5cm}
-%		{\scriptsize
-%		\cite{united_states_environmental_protection_agency_land_2017, exum_estimating_2005, fu_temporal_2006}}
-%\end{frame}
+\begin{frame}{Introduction}
+Analyse fréquentielle des évènements extrêmes avec :
+\vspace{0.5cm}
+\begin{itemize}
+\setlength{\itemsep}{10pt}
+	\item approche par dépassement de seuil,
+	\item nonstationnarité,
+	\item incertitudes.
+\end{itemize}
+\vspace{0.5cm}
+Échantillonnage des paramètres du modèle et échantillonnage des différents modèles nonstationnaires avec une approche Bayesienne.
+\end{frame}
 
 \begin{frame}{Plan}
 \tableofcontents
 \end{frame}
 
 
-\section{Modèle des valeurs extrêmes par dépassement de seuil}
+\section{Modèle nonstationaire des valeurs extrêmes par dépassement de seuil}
+
+
+\begin{frame}{Site}
+\begin{columns}
+	\begin{column}{0.7\textwidth}
+	\vspace{-1.2cm}
+	\begin{figure}
+	 		\includegraphics[height=1.1\textheight, center]{../figures/map.pdf}
+	\end{figure}
+	\end{column}
+	\begin{column}{0.3\textwidth}
+	Surcote marine (ici skew surge) : différence entre le niveau marin et la marée.
+	\vspace{0.5cm} \\
+	Modification locale et transitoire du niveau marin causée par les variations de pressions atmosphérique et le vent.
+	\end{column}
+\end{columns}
+\end{frame}
+
 
 \begin{frame}{Seuil par régression quantile}
 \begin{columns}
@@ -170,10 +187,31 @@
 		\end{figure}
 	\end{column}
 	\begin{column}{0.6\textwidth}
-	Régression quantile en fonction de la saison avec une probabilité journalière de dépassement de 1 \%.
+	\begin{itemize}
+	\setlength{\itemsep}{10pt}
+	\item Forte saisonnalité du signal.
+	\item Régression quantile $\tau = 0.99$ (données journalières) en fonction de la saison modélisé par une sinusoïde.
+	\item En minimisant
+	\end{itemize}
+	\begin{equation*}
+	\ell_u = \tau \sum_{i|r_i \geq 0} |r_i| + (1-\tau) \sum_{i|r_i < 0} |r_i|
+	\end{equation*}
+	\phantom{-----.} avec $r_i$ le rang de l'observation $i$. %no one will ever know
 	\end{column}
 \end{columns}
 \end{frame}
+
+
+\begin{frame}{Approche Peaks Over Threshold}
+\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Rééchantillonnage pour extraire les évènements extrêmes.
+	\item Un évènement extrême peut correspondre à plusieurs dépassements consécutifs.
+	\item Seule les valeurs maximale des clusters de dépassements sont gardées comme valeurs extrêmes.
+	\item Run declustering : clusters distincts définis par $r$ valeurs sous le seuil.
+\end{itemize}
+\end{frame}
+
 
 \begin{frame}{Nonhomogeneous Poisson process}
 \begin{columns}
@@ -212,6 +250,59 @@
 \end{frame}
 
 
+\section{Sélection et ajustement du modèle par reversible jump Markov chain Monte Carlo}
+
+\begin{frame}{Méthodes Bayesiennes}
+	\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Distribution a posteriori des paramètres obtenue avec le théorème de Bayes.
+	\item $\pi(\theta|x) \propto L(x|\theta) \; \pi(\theta)$
+	\item Échantillonnage de la distribution a posteriori avec un algorithme MCMC.
+	\item Markov chain : l'état à $t$ dépend de l'état à $t-1$.
+	\item Monte Carlo : l'algorithm nécessite un grand nombre d'itérations.
+	\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Algorithme Metropolis-Hastings pour échantillonner les paramètres}
+	\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Nouvelle valeur proposée pour chaque paramètre du modèle NHPP.
+	\item $\alpha_{stay} = \dfrac{L(x|\theta^*)}{L(x|\theta^{t-1})} \dfrac{g(\theta^{t-1}|\theta^*)}{g(\theta^*|\theta^{t-1})}$
+	\item Nouvelle valeur acceptée avec la probabilité $\min(1, \alpha_{stay})$.
+	\item Un rejet de la nouvelle valeur est une itération valide.
+	\item La proposal $g$ est $N(\theta, \sigma^2)$, donc ici s'annule (algorithm Metropolis).
+	\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Reversible jump pour échantillonner les modèles nonstationnaires}
+Vecteur des hyperparamètres de $\mu$ et $\sigma$ modifié par RJMCMC.
+\vspace{0.5cm} \\
+\begin{centering}
+\begin{tabular}{ l|lll }
+  & pas de tendance & tendance linéaire & tendance quadratique \\
+ \hline
+ pas de saison & $\mu_0$ & $\mu_0, \mu_1$ & $\mu_0, \mu_1, \mu_2$ \\ 
+ saison & $\mu_0, \mu_3, \mu_4$ & $\mu_0, \mu_1, \mu_3, \mu_4$ & $\mu_0, \mu_1, \mu_2, \mu_3, \mu_4$ \\
+ \hline
+\end{tabular}
+\end{centering}
+Même chose pour $\sigma$.
+\begin{equation*}
+\alpha_{jump} =
+\dfrac{L(x|\theta^{new})}{L(x|\theta^{old})}
+\dfrac{g(\theta^{old})}{g(\theta^{new})}
+\dfrac{\pi(\theta^{new})}{\pi(\theta^{old})}
+\dfrac{j(m^{new} \rightarrow m^{old})}{j(m^{old} \rightarrow m^{new})}
+\end{equation*}
+avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j(m^a \rightarrow m^b)$.
+\end{frame}
+
+
+
+\section{Modélisation de la surcote à Dieppe}
+
 
 \begin{frame}{Sauts entre les modèles}
 	\begin{figure}
@@ -243,6 +334,8 @@
 	\end{equation*}
 	\end{fleqn}
 	est le plus visité.
+	\vspace{0.5cm} \\
+	Tous les modèles possibles ne sont pas visités pendant les 18000 itérations.
 	\end{column}
 \end{columns}
 \end{frame}
@@ -250,14 +343,19 @@
 
 \begin{frame}{Graphiques de trace}
 \begin{columns}
-	\begin{column}{0.7\textwidth}
+	\begin{column}{0.65\textwidth}
 		\begin{figure}
 		\vspace{-0.4cm}
-	 		\includegraphics[height=0.85\textheight, center]{../figures/traces.pdf}
+	 		\includegraphics[height=0.88\textheight, center]{../figures/traces.pdf}
 		\end{figure}
 	\end{column}
-	\begin{column}{0.3\textwidth}
-    Pseudo traces pour les 9 hyperparamètres du modèle le plus visité.
+	\begin{column}{0.35\textwidth}
+    	\begin{itemize}
+	\setlength{\itemsep}{10pt}
+	\item Pseudo traces pour les 9 hyperparamètres du modèle le plus visité.
+	\item Mixing des chaines $\mu$ moins bon que pour les autres paramètres.
+	\item Période initiale de burn-in avant que les chaines soient stationnaires.
+	\end{itemize}
 	\end{column}
 \end{columns}
 \end{frame}
@@ -265,16 +363,32 @@
 
 \begin{frame}{Distributions des hyperparamètres}
 \begin{columns}
-	\begin{column}{0.7\textwidth}
+	\begin{column}{0.65\textwidth}
 		\begin{figure}
 		\vspace{-0.4cm}
-	 		\includegraphics[height=0.85\textheight, center]{../figures/hists.pdf}
+	 		\includegraphics[height=0.88\textheight, center]{../figures/hists.pdf}
 		\end{figure}
 	\end{column}
-	\begin{column}{0.3\textwidth}
-	Hyperparamètres du modèle le plus visité.
+	\begin{column}{0.35\textwidth}
+	\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Hyperparamètres du modèle le plus visité.
+	\item Des intervalles de crédibilité s'obtiennent avec le résultat du MCMC.
+	\end{itemize}
 	\end{column}
 \end{columns}
+\end{frame}
+
+
+\begin{frame}{Conclusion}
+\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Approche POT permet une meilleure utilisation des données journalière que des maxima annuels,
+	\item et permet de prendre en compte la saisonnalité.
+	\item Approche Bayesienne permet de facilement sélectionner un modèle parmi plusieurs,
+	\item une bonne prise en compte des incertitudes,
+	\item facilement adaptable à d'autres problèmes.
+\end{itemize}
 \end{frame}
 
 
