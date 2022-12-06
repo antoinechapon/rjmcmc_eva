@@ -62,7 +62,29 @@ data$sin <- sin(yday(data$t) / (365 + leap_year(data$t)) * 2 * pi)
 # dans le resultat du bootstrap pour CI à la Serinaldi ?)
 
 
+# Map station
+library(sf)
+library(rnaturalearth)
+library(ggrepel)
+world <- ne_countries(scale = 10, returnclass = "sf")
 
+# Dieppe
+load("station_coord.RData")
+station_coord_sub <- station_coord[station_coord$name == "Dieppe", ]
+ggplot() +
+  geom_sf(data = world, colour = "#AAAAAA", fill = "#F0F0F0") +
+  geom_point(data = station_coord_sub, aes(x = lon_m, y = lat)) +
+  geom_text_repel(data = station_coord_sub,
+                  aes(x = lon_m, y = lat, label = name,)) +
+  geom_text(aes(x = -11, y = 48, label = "Océan Atlantique"), color = "blue") +
+  geom_text(aes(x = 2.5, y = 47, label = "France"), color = "#666666") +
+  geom_text(aes(x = -2, y = 52.5, label = "UK"), color = "#666666") +
+  geom_text(aes(x = -2, y = 50, label = "Manche"), color = "blue", angle = 20) +
+  geom_text(aes(x = 3, y = 54, label = "Mer du Nord"), color = "blue") +
+  coord_sf(xlim = c(-15, 10), ylim = c(40, 54)) +
+  labs(x = "longitude", y = "latitude") +
+  theme_bw(base_size = 12) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 
 # str(data)
