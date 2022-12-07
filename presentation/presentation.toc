@@ -1,4 +1,4 @@
 \babel@toc {french}{}\relax 
 \beamer@sectionintoc {2}{Modèle nonstationaire des valeurs extrêmes par dépassement de seuil}{4}{0}{1}
-\beamer@sectionintoc {3}{Sélection et ajustement du modèle par reversible jump Markov chain Monte Carlo}{8}{0}{2}
-\beamer@sectionintoc {4}{Modélisation de la surcote à Dieppe}{11}{0}{3}
+\beamer@sectionintoc {3}{Sélection et ajustement du modèle par reversible jump Markov chain Monte Carlo}{9}{0}{2}
+\beamer@sectionintoc {4}{Modélisation de la surcote à Dieppe (France)}{13}{0}{3}

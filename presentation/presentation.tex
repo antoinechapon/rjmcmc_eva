@@ -8,6 +8,33 @@
   \setbeamercovered{transparent}
 }
 
+% Remove the subsection bar.
+\makeatletter
+\setbeamertemplate{headline}
+{%
+    \begin{beamercolorbox}[wd=\paperwidth,colsep=1.5pt]{upper separation line head}
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{title in head/foot}
+      \usebeamerfont{title in head/foot}\insertshorttitle
+    \end{beamercolorbox}
+    \begin{beamercolorbox}[wd=\paperwidth,ht=2.5ex,dp=1.125ex,%
+      leftskip=.3cm,rightskip=.3cm plus1fil]{section in head/foot}
+      \usebeamerfont{section in head/foot}%
+      \ifbeamer@tree@showhooks
+        \setbox\beamer@tempbox=\hbox{\insertsectionhead}%
+        \ifdim\wd\beamer@tempbox>1pt%
+          \hskip2pt\raise1.9pt\hbox{\vrule width0.4pt height1.875ex\vrule width 5pt height0.4pt}%
+          \hskip1pt%
+        \fi%
+      \else%  
+        \hskip6pt%
+      \fi%
+      \insertsectionhead
+    \end{beamercolorbox}
+% Code for subsections removed here
+}
+\makeatother
 
 
 \usepackage[french]{babel}
@@ -111,11 +138,11 @@
 %\pgfdeclareimage[height=2cm]{logoINRS}{Logo-INRS-horizontal.png}
 %\logo{\pgfuseimage{logoINRS}}
 
-\titlegraphic{\vspace{-0.5cm}\flushleft\includegraphics[width=3cm]{Logo-INRS-horizontal.png}}
+\titlegraphic{\vspace{-0.5cm}\flushleft\includegraphics[width=2.5cm]{Logo-INRS-horizontal.png}}
 
 % Delete this, if you do not want the table of contents to pop up at
 % the beginning of each subsection:
-\AtBeginSubsection[]
+\AtBeginSection[] % \AtBeginSubsection[]
 {
 \begin{frame}<beamer>{Plan}
 \frametitle{Plan}
@@ -145,7 +172,7 @@ Analyse fréquentielle des évènements extrêmes avec :
 \vspace{0.5cm}
 \begin{itemize}
 \setlength{\itemsep}{10pt}
-	\item approche par dépassement de seuil,
+	\item modèle par dépassement de seuil,
 	\item nonstationnarité,
 	\item incertitudes.
 \end{itemize}
@@ -161,20 +188,35 @@ Analyse fréquentielle des évènements extrêmes avec :
 \section{Modèle nonstationaire des valeurs extrêmes par dépassement de seuil}
 
 
-\begin{frame}{Site}
+\begin{frame}{Variable modélisée}
 \begin{columns}
-	\begin{column}{0.7\textwidth}
+	\begin{column}{0.65\textwidth}
 	\vspace{-1.2cm}
 	\begin{figure}
 	 		\includegraphics[height=1.1\textheight, center]{../figures/map.pdf}
 	\end{figure}
 	\end{column}
-	\begin{column}{0.3\textwidth}
-	Surcote marine (ici skew surge) : différence entre le niveau marin et la marée.
-	\vspace{0.5cm} \\
-	Modification locale et transitoire du niveau marin causée par les variations de pressions atmosphérique et le vent.
+	\begin{column}{0.35\textwidth}
+	\vspace{-1cm}\\
+	\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Surcote marine (ici skew surge) journalière : différence entre le niveau marin observé et la marée prédite.
+	\item Modification locale et transitoire du niveau marin causée par la dépression atmosphérique et le vent.
+	\end{itemize}
 	\end{column}
 \end{columns}
+\end{frame}
+
+
+\begin{frame}{Approche Peaks Over Threshold}
+\begin{itemize}
+	\setlength{\itemsep}{17pt}
+	\item Rééchantillonnage pour extraire les évènements extrêmes.
+	\item Un évènement extrême peut correspondre à plusieurs dépassements consécutifs (fréquence d'observation journalière).
+	\item Seule les valeurs maximale des clusters de dépassements sont gardées comme valeurs extrêmes.
+	\item Run declustering : clusters distincts définis par $r$ valeurs sous le seuil.
+	\item 46 ans de données.
+\end{itemize}
 \end{frame}
 
 
@@ -183,7 +225,7 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\begin{column}{0.4\textwidth}
 		\begin{figure}
 		\vspace{-0.4cm}
-	 		\includegraphics[height=0.85\textheight, center]{../figures/points.pdf}
+	 		\includegraphics[height=0.875\textheight, center]{../figures/points.pdf}
 		\end{figure}
 	\end{column}
 	\begin{column}{0.6\textwidth}
@@ -199,17 +241,6 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\phantom{-----.} avec $r_i$ le rang de l'observation $i$. %no one will ever know
 	\end{column}
 \end{columns}
-\end{frame}
-
-
-\begin{frame}{Approche Peaks Over Threshold}
-\begin{itemize}
-	\setlength{\itemsep}{17pt}
-	\item Rééchantillonnage pour extraire les évènements extrêmes.
-	\item Un évènement extrême peut correspondre à plusieurs dépassements consécutifs.
-	\item Seule les valeurs maximale des clusters de dépassements sont gardées comme valeurs extrêmes.
-	\item Run declustering : clusters distincts définis par $r$ valeurs sous le seuil.
-\end{itemize}
 \end{frame}
 
 
@@ -244,7 +275,6 @@ Analyse fréquentielle des évènements extrêmes avec :
 		\end{fleqn}
 	\end{column}
 \end{columns}
-	\vspace{1cm}
 	{\scriptsize
 	\cite{northrop_threshold_2016}}
 \end{frame}
@@ -257,6 +287,7 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\setlength{\itemsep}{17pt}
 	\item Distribution a posteriori des paramètres obtenue avec le théorème de Bayes.
 	\item $\pi(\theta|x) \propto L(x|\theta) \; \pi(\theta)$
+	\item RAJOUTER EXPLICATIONS
 	\item Échantillonnage de la distribution a posteriori avec un algorithme MCMC.
 	\item Markov chain : l'état à $t$ dépend de l'état à $t-1$.
 	\item Monte Carlo : l'algorithm nécessite un grand nombre d'itérations.
@@ -288,7 +319,8 @@ Vecteur des hyperparamètres de $\mu$ et $\sigma$ modifié par RJMCMC.
  \hline
 \end{tabular}
 \end{centering}
-Même chose pour $\sigma$.
+\vspace{0.2cm} \\
+Paramétrisations similaires pour $\sigma$.
 \begin{equation*}
 \alpha_{jump} =
 \dfrac{L(x|\theta^{new})}{L(x|\theta^{old})}
@@ -301,13 +333,13 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 
 
 
-\section{Modélisation de la surcote à Dieppe}
+\section{Modélisation de la surcote à Dieppe (France)}
 
 
 \begin{frame}{Sauts entre les modèles}
 	\begin{figure}
 	\vspace{-0.15cm}
-	 \includegraphics[width=0.95\textwidth, center]{../figures/jumps.pdf}
+	 \includegraphics[width=\textwidth, center]{../figures/jumps.pdf}
 	\end{figure}
 \end{frame}
 
@@ -346,7 +378,7 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 	\begin{column}{0.65\textwidth}
 		\begin{figure}
 		\vspace{-0.4cm}
-	 		\includegraphics[height=0.88\textheight, center]{../figures/traces.pdf}
+	 		\includegraphics[height=0.9\textheight, center]{../figures/traces.pdf}
 		\end{figure}
 	\end{column}
 	\begin{column}{0.35\textwidth}
@@ -366,7 +398,7 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 	\begin{column}{0.65\textwidth}
 		\begin{figure}
 		\vspace{-0.4cm}
-	 		\includegraphics[height=0.88\textheight, center]{../figures/hists.pdf}
+	 		\includegraphics[height=0.9\textheight, center]{../figures/hists.pdf}
 		\end{figure}
 	\end{column}
 	\begin{column}{0.35\textwidth}
@@ -374,6 +406,7 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 	\setlength{\itemsep}{17pt}
 	\item Hyperparamètres du modèle le plus visité.
 	\item Des intervalles de crédibilité s'obtiennent avec le résultat du MCMC.
+	\item Utilisable pour inférences avec incertitudes.
 	\end{itemize}
 	\end{column}
 \end{columns}
@@ -383,9 +416,9 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 \begin{frame}{Conclusion}
 \begin{itemize}
 	\setlength{\itemsep}{17pt}
-	\item Approche POT permet une meilleure utilisation des données journalière que des maxima annuels,
+	\item L'approche POT permet une meilleure utilisation des données journalière que l'approche avec bloc maxima annuels,
 	\item et permet de prendre en compte la saisonnalité.
-	\item Approche Bayesienne permet de facilement sélectionner un modèle parmi plusieurs,
+	\item Un algorithme RJMCMC permet de facilement sélectionner un modèle parmi plusieurs,
 	\item une bonne prise en compte des incertitudes,
 	\item facilement adaptable à d'autres problèmes.
 \end{itemize}
