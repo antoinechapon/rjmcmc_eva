@@ -355,7 +355,7 @@ bdmcmc_nhpp <- function(input,
 run <- bdmcmc_nhpp(pot_surge,
                    thresh = thresh_surge$fitted.values,
                    fevd_init = init_surge,
-                   n_mc = 2e4)
+                   n_mc = 100)
 # save(run, file = "run.RData")
 load("run.RData")
 
