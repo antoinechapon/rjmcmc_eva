@@ -47,9 +47,12 @@
 \headcommand {\beamer@framepages {18}{18}}
 \headcommand {\beamer@sectionpages {13}{18}}
 \headcommand {\beamer@subsectionpages {13}{18}}
-\headcommand {\slideentry {5}{0}{1}{19/19}{}{0}}
+\headcommand {\beamer@sectionpages {19}{18}}
+\headcommand {\beamer@subsectionpages {19}{18}}
+\headcommand {\sectionentry {6}{R\'ef\'erences}{19}{R\'ef\'erences}{0}}
+\headcommand {\slideentry {6}{0}{0}{19/19}{}{0}}
 \headcommand {\beamer@framepages {19}{19}}
-\headcommand {\slideentry {5}{0}{2}{20/20}{}{0}}
+\headcommand {\slideentry {6}{0}{1}{20/20}{}{0}}
 \headcommand {\beamer@framepages {20}{20}}
 \headcommand {\beamer@partpages {1}{20}}
 \headcommand {\beamer@subsectionpages {19}{20}}

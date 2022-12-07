@@ -53,8 +53,12 @@
 \usepackage{float}
 \usepackage{listings}
 \usepackage{textcomp}
-\usepackage[backend=biber, style=authoryear, defernumbers=true]{biblatex}
 
+\usepackage[natbib=true, backend=bibtex, style=authoryear, defernumbers=true, maxnames=2, giveninits=true]{biblatex}
+
+
+\usefonttheme{professionalfonts}
+ 
 \addbibresource{MyLibrary.bib}
 
 \renewcommand*{\bibfont}{\scriptsize}
@@ -214,7 +218,7 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\item Rééchantillonnage pour extraire les évènements extrêmes.
 	\item Un évènement extrême peut correspondre à plusieurs dépassements consécutifs (fréquence d'observation journalière).
 	\item Seule les valeurs maximale des clusters de dépassements sont gardées comme valeurs extrêmes.
-	\item Run declustering : clusters distincts définis par $r$ valeurs sous le seuil.
+	\item Run declustering : clusters distincts définis par $r=2$ valeurs sous le seuil.
 	\item 46 ans de données.
 \end{itemize}
 \end{frame}
@@ -238,7 +242,7 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\begin{equation*}
 	\ell_u = \tau \sum_{i|r_i \geq 0} |r_i| + (1-\tau) \sum_{i|r_i < 0} |r_i|
 	\end{equation*}
-	\phantom{-----.} avec $r_i$ le rang de l'observation $i$. %no one will ever know
+	\phantom{-----.} avec $r_i = y_i - u(x_i,\tau)$.
 	\end{column}
 \end{columns}
 \end{frame}
@@ -256,14 +260,13 @@ Analyse fréquentielle des évènements extrêmes avec :
 		avec $1+\xi_t(y_t-\mu_t)/\sigma_t > 0$, \\ sinon $\lambda_b(t,y_t) = 0$.
 	\end{column}
 	\begin{column}{0.5\textwidth}
-	\vspace{0.5cm} \\
-		Paramètres dépendants de $t$ et $s_t$ avec comme modèle ayant le plus d'hyperparamètres
+		Paramètres dépendants de $t$ et $s$ (jour de l'année sur $[0, 2\pi]$) avec comme modèle ayant le plus d'hyperparamètres
 		\begin{fleqn}
 		\begin{equation*}
-		\mu_t = \mu_0 + \mu_1 t + \mu_2 t^2 + \mu_3 \cos(s_t) + \mu_4 \sin(s_t),
+		\mu_t = \mu_0 + \mu_1 t + \mu_2 t^2 + \mu_3 \cos(s) + \mu_4 \sin(s),
 		\end{equation*}
 		\begin{equation*}
-		\phi_t = \phi_0 + \phi_1 t + \phi_2 t^2 + \phi_3 \cos(s_t) + \phi_4 \sin(s_t),
+		\phi_t = \phi_0 + \phi_1 t + \phi_2 t^2 + \phi_3 \cos(s) + \phi_4 \sin(s),
 		\end{equation*}
 		\begin{equation*}
 		\sigma_t = \exp(\phi_t),
@@ -275,8 +278,9 @@ Analyse fréquentielle des évènements extrêmes avec :
 		\end{fleqn}
 	\end{column}
 \end{columns}
+	\vspace{0.4cm}
 	{\scriptsize
-	\cite{northrop_threshold_2016}}
+	\fullcite{northrop_threshold_2016}}
 \end{frame}
 
 
@@ -287,10 +291,11 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\setlength{\itemsep}{17pt}
 	\item Distribution a posteriori des paramètres obtenue avec le théorème de Bayes.
 	\item $\pi(\theta|x) \propto L(x|\theta) \; \pi(\theta)$
-	\item RAJOUTER EXPLICATIONS
+	\hspace{3cm}
+	posterior $\propto$ likelihood $\times$ prior
 	\item Échantillonnage de la distribution a posteriori avec un algorithme MCMC.
 	\item Markov chain : l'état à $t$ dépend de l'état à $t-1$.
-	\item Monte Carlo : l'algorithm nécessite un grand nombre d'itérations.
+	\item Monte Carlo : l'algorithme nécessite un grand nombre d'itérations.
 	\end{itemize}
 \end{frame}
 
@@ -304,12 +309,15 @@ Analyse fréquentielle des évènements extrêmes avec :
 	\item Un rejet de la nouvelle valeur est une itération valide.
 	\item La proposal $g$ est $N(\theta, \sigma^2)$, donc ici s'annule (algorithm Metropolis).
 	\end{itemize}
+	\vspace{0.4cm}
+	{\scriptsize
+	\fullcite{gelman_bayesian_2015}}
 \end{frame}
 
 
 \begin{frame}{Reversible jump pour échantillonner les modèles nonstationnaires}
-Vecteur des hyperparamètres de $\mu$ et $\sigma$ modifié par RJMCMC.
-\vspace{0.5cm} \\
+Vecteurs des hyperparamètres de $\mu$ et $\sigma$ modifiés par RJMCMC.
+\vspace{0.3cm} \\
 \begin{centering}
 \begin{tabular}{ l|lll }
   & pas de tendance & tendance linéaire & tendance quadratique \\
@@ -320,7 +328,7 @@ Vecteur des hyperparamètres de $\mu$ et $\sigma$ modifié par RJMCMC.
 \end{tabular}
 \end{centering}
 \vspace{0.2cm} \\
-Paramétrisations similaires pour $\sigma$.
+Paramétrisations similaires pour $\sigma = \exp(\phi)$.
 \begin{equation*}
 \alpha_{jump} =
 \dfrac{L(x|\theta^{new})}{L(x|\theta^{old})}
@@ -329,6 +337,9 @@ Paramétrisations similaires pour $\sigma$.
 \dfrac{j(m^{new} \rightarrow m^{old})}{j(m^{old} \rightarrow m^{new})}
 \end{equation*}
 avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j(m^a \rightarrow m^b)$.
+	\vspace{0.3cm} \\
+	{\scriptsize
+	\fullcite{el_adlouni_joint_2009}}
 \end{frame}
 
 
@@ -338,8 +349,8 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 
 \begin{frame}{Sauts entre les modèles}
 	\begin{figure}
-	\vspace{-0.15cm}
-	 \includegraphics[width=\textwidth, center]{../figures/jumps.pdf}
+	\vspace{-0.25cm}
+	 \includegraphics[width=0.98\textwidth, center]{../figures/jumps.png}
 	\end{figure}
 \end{frame}
 
@@ -356,10 +367,10 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
     Le modèle paramétrisé
     \begin{fleqn}
     \begin{equation*}
-		\mu_t = \mu_0 + \mu_3 \cos(s_t) + \mu_4 \sin(s_t),
+		\mu_t = \mu_0 + \mu_3 \cos(s) + \mu_4 \sin(s),
 	\end{equation*}
 	\begin{equation*}
-		\sigma_t = \exp(\phi_0 + \phi_1 t + \phi_2 t^2 + \phi_3 \cos(s_t) + \phi_4 \sin(s_t)),
+		\sigma_t = \exp[\phi_0 + \phi_1 t + \phi_2 t^2 + \phi_3 \cos(s) + \phi_4 \sin(s)],
 	\end{equation*}
 	\begin{equation*}
 		\xi_t = \xi,
@@ -367,7 +378,7 @@ avec la prior $\pi$ et la probabilité de sauter d'un modèle $m$ à un autre $j
 	\end{fleqn}
 	est le plus visité.
 	\vspace{0.5cm} \\
-	Tous les modèles possibles ne sont pas visités pendant les 18000 itérations.
+	Les différents modèles possibles ne sont pas tous visités pendant les 18000 itérations.
 	\end{column}
 \end{columns}
 \end{frame}
