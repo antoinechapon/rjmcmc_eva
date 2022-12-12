@@ -1,4 +1,4 @@
-# Echantillonnage aleatoire simple ####
+# SIMPLE ####
 
 # _Moyenne de la pop ####
 
@@ -6,8 +6,8 @@ sigma_ybar <- function(sigma, n, N) {
   sigma / sqrt(n) * sqrt(1 - n / N)
 }
 
-s2 <- function(y, ybar, n) {
-  sum( (y - ybar)^2 ) / (n - 1)
+s2 <- function(y, n) {
+  sum( (y - mean(y))^2 ) / (n - 1)
 }
 
 s_ybar <- function(s, n, N) {
@@ -70,3 +70,83 @@ n_cor <- function(u_alpha2, sigma, L, rho_l, rho_c, ns) {
 }
 
 # _Echantillonnage aleatoire simple avec variable supplementaire
+
+# estimation par un rapport
+
+var_Yhat_r <- function(x, y, n, N, Rhat) {
+  N^2/n * (1 - n/N) * sum((y - Rhat*x)^2) / (N - 1)
+}
+
+var_Yhatbar_r <- function(x, y, n, N, Rhat) {
+  1/n * (1 - n/N) * sum((y - Rhat*x)^2) / (N - 1)
+}
+
+# estimation par regression
+
+ybar_r <- function(ybar, b, Xbar, xbar){
+  ybar + b * (Xbar - xbar)
+}
+# coef b fixe a priori
+var_y_r_fixe <- function(b, x, y, n, N) {
+  s_x2 <- 1/(n-1) * sum((x - mean(x))^2)
+  s_y2 <- 1/(n-1) * sum((y - mean(y))^2)
+  s_xy2 <- 1/(n-1) * sum((x - mean(x))* (y - mean(y)))
+  var <- (1 - n/N) / n * (s_y2 - 2*b*s_xy2 + b^2 * s_x2)
+  return(var)
+}
+# coef b determine a partir de l'echantillon
+coef_b <- function(x, y) {
+  sum((x - mean(x))* (y - mean(y))) / sum((x - mean(x))^2)
+}
+var_y_r_dete <- function(x, y, n, N) {
+  s_xy2 <- 1/(n-1) * sum((x - mean(x))* (y - mean(y)))
+  rho <- s_xy2 / (sqrt(s2(x)) * sqrt(s2(y)))
+  var <- (1 - n/N) / n * s2(y) * (1 - rho^2)
+}
+
+
+
+# STRATIFIE ####
+
+# _Stratifie proportionnel ####
+
+nh_prop <- function(Nh, n, N){
+  Nh * n / N
+}
+
+ybar_strat <- function(N, Nh, yh) {
+  1/N * sum(Nh * yh)
+}
+
+var_ybar_strat <- function(N, Nh, nh, yh_list) { # generale
+  yh_vec <- rep(NA, length(yh_list))
+  for (i in 1:length(yh_list)) {
+    yh_vec[[i]] <- s2(yh_list[[i]], nh[i])
+  }
+  sum( (Nh/N)^2 * (1 - nh/Nh) * yh_vec / nh )
+}
+
+var_Yhat_strat <- function(Nh, nh, yh_list){ # generale
+  sh2 <- rep(NA, length(nh))
+  for (i in 1:lenght(nh)) {
+    sh2[i] <- s2(yh_list[[i]], nh[i])
+  }
+  sum( Nh^2 * (1 - nh/Nh) * sh2 / nh )
+}
+
+# _Stratifie optimum ####
+
+n_optim <- function(Nh, C, C0, ch, sigmah) {
+  (C - C0) * sum(Nh * sigmah / sqrt(ch)) / sum(Nh * sigmah * sqrt(ch))
+}
+
+nh_optim <- function(Nh, ch, sigmah) {
+  Nh * sigmah / (sqrt(sigmah) * sum(Nh * sigmah / sqrt(ch)))
+}
+
+var_yst_min <- function(N, n, sigmah) {
+  1/N^2 * (1/n * sum(Nh * sigmah)^2 - sum(Nh * sigmah^2))
+}
+
+# _Stratitife pour estimation de proportions ####
+
