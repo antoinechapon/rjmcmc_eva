@@ -69,6 +69,8 @@ n_cor <- function(u_alpha2, sigma, L, rho_l, rho_c, ns) {
                 8 / (ns*D) * (sum(l * rho_l) - rho_c * (ns - 1) * sum(l * rho_l)) )^(1 / 2)
 }
 
+
+
 # _Echantillonnage aleatoire simple avec variable supplementaire
 
 # estimation par un rapport
@@ -126,6 +128,11 @@ var_ybar_strat <- function(N, Nh, nh, yh_list) { # generale
   sum( (Nh/N)^2 * (1 - nh/Nh) * yh_vec / nh )
 }
 
+var_ybar_strat2 <- function(N, Nh, nh, sh) { # avec sh^2
+  sum( (Nh/N)^2 * (1 - nh/Nh) * sh^2 / nh )
+}
+
+
 var_Yhat_strat <- function(Nh, nh, yh_list){ # generale
   sh2 <- rep(NA, length(nh))
   for (i in 1:lenght(nh)) {
@@ -134,19 +141,61 @@ var_Yhat_strat <- function(Nh, nh, yh_list){ # generale
   sum( Nh^2 * (1 - nh/Nh) * sh2 / nh )
 }
 
+
 # _Stratifie optimum ####
 
 n_optim <- function(Nh, C, C0, ch, sigmah) {
   (C - C0) * sum(Nh * sigmah / sqrt(ch)) / sum(Nh * sigmah * sqrt(ch))
 }
 
-nh_optim <- function(Nh, ch, sigmah) {
-  Nh * sigmah / (sqrt(sigmah) * sum(Nh * sigmah / sqrt(ch)))
+nh_optim <- function(n, Nh, ch, sigmah) {
+  n * Nh * sigmah / (sqrt(ch) * sum(Nh * sigmah / sqrt(ch)))
 }
 
 var_yst_min <- function(N, n, sigmah) {
   1/N^2 * (1/n * sum(Nh * sigmah)^2 - sum(Nh * sigmah^2))
 }
 
+
 # _Stratitife pour estimation de proportions ####
+
+p_st <- function(ph, Nh, N) {
+  sum(Nh * ph / N)
+}
+
+var_P_st <- function(Nh, N, nh, Ph) {
+  sum( (Nh/N)^2 * Ph*(1-Ph)/nh * (1 - nh/Nh) )
+}
+
+var_p_st <- function(Nh, N, nh, Ph) {
+  sum( (Nh/N)^2 * Ph*(1-Ph)/nh )
+}
+
+# estim proportion avec strate optimales (p. 46)
+nh_optim_estprop <- function(n, Nh, Ph, ch) {
+  n * (Nh * sqrt(Ph*(1-Ph)/ch)) / sum(Nh * sqrt(Ph*(1-Ph)/ch))
+}
+
+
+
+# SYSTEMATIQUE ####
+
+
+
+
+
+
+
+#######################
+
+# exemple 13, page 42
+
+Nh <- c(394, 461, 391, 334, 169, 113, 148)
+sh <- c(8.3, 13.3, 15.1, 19.8, 24.5, 26, 35.2)
+
+var_ybar_strat2(N = sum(Nh), Nh = Nh, nh = nh, sh = sh)
+
+round(nh_optim(n = 100, Nh = Nh, ch = rep(1, length(Nh)), sigmah = sh))
+  
+var_yst_min(N = sum(Nh), n = 100, sigmah = sh)
 
