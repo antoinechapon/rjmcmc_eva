@@ -80,7 +80,7 @@ ggplot(toplot) +
   theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
-
+# MLE estimates to initialize the RJMCMC.
 init_surge <- fevd(x = y,
                    data = pot_surge,
                    use.phi = TRUE,
@@ -97,7 +97,7 @@ bdmcmc_nhpp <- function(input,
   library(mvtnorm)
   tic()
   t_vec <- scale(1:nrow(input))
-  # Lists of vectors indication which covariate is currently active.
+  # Lists of vectors indicating which covariates are in the current MCMC iteration.
   locat_l <- list(
     trend = rep(FALSE, 2),
     season = FALSE
@@ -147,7 +147,7 @@ bdmcmc_nhpp <- function(input,
       print(paste(i / n_mc * 100, "% completed."))
     }
     # STAY step:
-    # Update every parameter with Metropolis. (NEED BOUNDED MH ON [-.5,.5] FOR XI)
+    # Update every parameter with Metropolis. (NEED BOUNDED Metropolis-Hastings ON [-.5,.5] FOR XI ? see Martins and Stedinger 2000. Or not and issue in the MCMC framework ?)
     for (j in 1:length(par_old)) {
       # Iterating EVD parameters.
       for (k in 1:length(par_old[[j]])) {
@@ -247,7 +247,7 @@ bdmcmc_nhpp <- function(input,
         lb = lb,
         ub = ub,
         opts = list(
-          algorithm = "NLOPT_LN_SBPLX", # bug with "NLOPT_LN_COBYLA"
+          algorithm = "NLOPT_LN_SBPLX", # bugs with algo "NLOPT_LN_COBYLA"
           ftol_rel = 1e-2,
           max_eval = -1,
           print_level = 0
@@ -320,7 +320,7 @@ bdmcmc_nhpp <- function(input,
       }
     }
     # Acceptance probability for jump step.
-    # Priors cancel so are not included. (BUT ADD THEM IF SHAPE IMPLEMENTED)
+    # Priors cancel each other so are not included. (BUT ADD THEM IF SHAPE IMPLEMENTED)
     alpha <- lik_new / lik_old * p_rj / p_j * dens_old / dens_new
     if (!is.nan(alpha)) {
       if (runif(1) < alpha) {
@@ -355,7 +355,7 @@ bdmcmc_nhpp <- function(input,
 run <- bdmcmc_nhpp(pot_surge,
                    thresh = thresh_surge$fitted.values,
                    fevd_init = init_surge,
-                   n_mc = 100)
+                   n_mc = 2e4)
 # save(run, file = "run.RData")
 load("run.RData")
 

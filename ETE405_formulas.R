@@ -15,6 +15,11 @@ s_ybar <- function(s, n, N) {
 }
 
 
+N1 = 1e3
+n1 = 12
+
+
+
 # _Somme des elements de la pop ####
 
 sigma_Yhat <- function(sigma, n, N) {
@@ -190,12 +195,12 @@ nh_optim_estprop <- function(n, Nh, Ph, ch) {
 
 # exemple 13, page 42
 
-Nh <- c(394, 461, 391, 334, 169, 113, 148)
-sh <- c(8.3, 13.3, 15.1, 19.8, 24.5, 26, 35.2)
-
-var_ybar_strat2(N = sum(Nh), Nh = Nh, nh = nh, sh = sh)
-
-round(nh_optim(n = 100, Nh = Nh, ch = rep(1, length(Nh)), sigmah = sh))
-  
-var_yst_min(N = sum(Nh), n = 100, sigmah = sh)
+# Nh <- c(394, 461, 391, 334, 169, 113, 148)
+# sh <- c(8.3, 13.3, 15.1, 19.8, 24.5, 26, 35.2)
+# 
+# var_ybar_strat2(N = sum(Nh), Nh = Nh, nh = nh, sh = sh)
+# 
+# round(nh_optim(n = 100, Nh = Nh, ch = rep(1, length(Nh)), sigmah = sh))
+#   
+# var_yst_min(N = sum(Nh), n = 100, sigmah = sh)
 
